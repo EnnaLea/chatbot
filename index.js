@@ -1,6 +1,5 @@
 "use strict";
 
-const axios = require('axios');
 const readlineSync = require('readline-sync');
 require('dotenv').config();
 
@@ -10,27 +9,8 @@ const Groq = require("groq-sdk");
 const groq = new Groq({
     apiKey: API_KEY
 });
-// async function main() {
-//     const chatCompletion = await getGroqChatCompletion();
-//     process.stdout.write(chatCompletion.choices[0]?.message?.content || "");
-// }
-// async function getGroqChatCompletion() {
-//     return groq.chat.completions.create({
-//         messages: [
-//             {
-//                 role: "user",
-//                 content: "Explain what are large language models"
-//             }
-//         ],
-//         model: "llama3-8b-8192"
-//     });
-// }
-// module.exports = {
-//     main,
-//     getGroqChatCompletion
-// };
 
-
+// Function to ask question and get the chatbot response
 async function getChatbotResponse(userInput) {
     try {
         const chatCompletion = await groq.chat.completions.create({
@@ -49,11 +29,8 @@ async function getChatbotResponse(userInput) {
         });
 
         for await (const chunk of chatCompletion) {
-            process.stdout.write(chunk.choices[0]?.delta?.content || '');
+            process.stdout.write(chunk.choices[0]?.delta?.content || '\n\n');
           }
-        //for space between questions
-          console.log();
-          console.log();
 
     } catch (error) {
         console.error('Error communicating with GroqCloud API:', error.message);
@@ -66,11 +43,11 @@ async function startChatbot() {
     console.log('Welcome to the Chatbot! Type your questions below or type "exit" to quit.\n');
 
     while (true) {
-        
+
         const userInput = readlineSync.question('You: ');
         console.log();
         if (userInput.toLowerCase() === 'exit') {
-            console.log('\nThe chat has ended. It was a pleasure chatting with you!');
+            console.log('\nThe chat has ended. It was a pleasure chatting with you!\n');
             break;
         }
 
