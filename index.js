@@ -1,41 +1,61 @@
+"use strict";
+
 const axios = require('axios');
 const readlineSync = require('readline-sync');
 require('dotenv').config();
 
-// Replace these with your actual GroqCloud and Llama3 API keys
-const GROQCLOUD_API_KEY = process.env.GROQ_API_KEY;
-const LLAMA3_API_KEY = 'your-llama3-api-key';
+const API_KEY = process.env.GROQ_API_KEY;
 
-// Function to send user input to GroqCloud and get a response from Llama3
+const Groq = require("groq-sdk");
+const groq = new Groq({
+    apiKey: API_KEY
+});
+async function main() {
+    const chatCompletion = await getGroqChatCompletion();
+    process.stdout.write(chatCompletion.choices[0]?.message?.content || "");
+}
+async function getGroqChatCompletion() {
+    return groq.chat.completions.create({
+        messages: [
+            {
+                role: "user",
+                content: "Explain what are large language models"
+            }
+        ],
+        model: "llama3-8b-8192"
+    });
+}
+module.exports = {
+    main,
+    getGroqChatCompletion
+};
+
+
 async function getChatbotResponse(userInput) {
     try {
-        // Make a request to GroqCloud API
-        const groqcloudResponse = await axios.post('https://api.groqcloud.com/v1/query', {
-            input: userInput
-        }, {
-            headers: {
-                'Authorization': `Bearer ${GROQCLOUD_API_KEY}`
-            }
+        const chatCompletion = await groq.chat.completions.create({
+            model: 'llama3-8b-8192',
+            messages: [
+                {
+                    role: 'user',
+                    content: userInput
+                }
+            ],
+            temperature: 1,
+            max_tokens: 1024,
+            top_p: 1,
+            stream: true,
+            stop: null
         });
 
-        const groqcloudData = groqcloudResponse.data;
+        for await (const chunk of chatCompletion) {
+            process.stdout.write(chunk.choices[0]?.delta?.content || '');
+          }
+        
+          console.log();
 
-        // Assuming GroqCloud returns a structured format, get the relevant data for Llama3
-        const formattedInput = groqcloudData.formatted_input;
-
-        // Make a request to Llama3 API
-        const llama3Response = await axios.post('https://api.llama3.com/v1/generate', {
-            input: formattedInput
-        }, {
-            headers: {
-                'Authorization': `Bearer ${LLAMA3_API_KEY}`
-            }
-        });
-
-        const llama3Data = llama3Response.data;
-        return llama3Data.response;
     } catch (error) {
-        console.error('Error communicating with APIs:', error.message);
+        console.error('Error communicating with GroqCloud API:', error.message);
         return 'Sorry, there was an error processing your request.';
     }
 }
@@ -45,17 +65,16 @@ async function startChatbot() {
     console.log('Welcome to the Chatbot! Type your questions below. Type "exit" to quit.');
 
     while (true) {
-        const userInput = readlineSync.question('You: ');
+        const userInput = readlineSync.question('Type your question or "exit": ');
 
         if (userInput.toLowerCase() === 'exit') {
-            console.log('Goodbye!');
+            console.log('The chat has ended. It was a pleasure chatting with you!');
             break;
         }
 
-        const response = await getChatbotResponse(userInput);
-        console.log('Chatbot:', response);
+        await getChatbotResponse(userInput);
     }
 }
 
-// Start the chatbot
+
 startChatbot();
