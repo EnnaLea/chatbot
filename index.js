@@ -10,25 +10,25 @@ const Groq = require("groq-sdk");
 const groq = new Groq({
     apiKey: API_KEY
 });
-async function main() {
-    const chatCompletion = await getGroqChatCompletion();
-    process.stdout.write(chatCompletion.choices[0]?.message?.content || "");
-}
-async function getGroqChatCompletion() {
-    return groq.chat.completions.create({
-        messages: [
-            {
-                role: "user",
-                content: "Explain what are large language models"
-            }
-        ],
-        model: "llama3-8b-8192"
-    });
-}
-module.exports = {
-    main,
-    getGroqChatCompletion
-};
+// async function main() {
+//     const chatCompletion = await getGroqChatCompletion();
+//     process.stdout.write(chatCompletion.choices[0]?.message?.content || "");
+// }
+// async function getGroqChatCompletion() {
+//     return groq.chat.completions.create({
+//         messages: [
+//             {
+//                 role: "user",
+//                 content: "Explain what are large language models"
+//             }
+//         ],
+//         model: "llama3-8b-8192"
+//     });
+// }
+// module.exports = {
+//     main,
+//     getGroqChatCompletion
+// };
 
 
 async function getChatbotResponse(userInput) {
@@ -51,7 +51,8 @@ async function getChatbotResponse(userInput) {
         for await (const chunk of chatCompletion) {
             process.stdout.write(chunk.choices[0]?.delta?.content || '');
           }
-        
+        //for space between questions
+          console.log();
           console.log();
 
     } catch (error) {
@@ -62,19 +63,23 @@ async function getChatbotResponse(userInput) {
 
 // Function to start the chatbot
 async function startChatbot() {
-    console.log('Welcome to the Chatbot! Type your questions below. Type "exit" to quit.');
+    console.log('Welcome to the Chatbot! Type your questions below or type "exit" to quit.\n');
 
     while (true) {
-        const userInput = readlineSync.question('Type your question or "exit": ');
-
+        
+        const userInput = readlineSync.question('You: ');
+        console.log();
         if (userInput.toLowerCase() === 'exit') {
-            console.log('The chat has ended. It was a pleasure chatting with you!');
+            console.log('\nThe chat has ended. It was a pleasure chatting with you!');
             break;
         }
 
         await getChatbotResponse(userInput);
     }
 }
-
+module.export ={
+    getChatbotResponse,
+    startChatbot
+}
 
 startChatbot();
